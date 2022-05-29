@@ -12,8 +12,22 @@ Graph* adj_list[MAX_VERTEX];
 int visit_flag[MAX_VERTEX];
 int stackTop = -1;
 
+Graph* Queue[MAX_VERTEX];
+int front = -1;
+int rear = -1;
+
 /* functions that you have to implement */
 int initializeGraph(Graph** h);	//그래프를 초기화하는 함수
+int insertVertex(Graph*, int);  //그래프에 정점을 생성하는 함수
+int insertEdge(Graph*, int , int);   //두 정점 사이 간선을 생성하는 함수
+void printGraph(Graph*);        //그래프를 출력하는 함수
+int freeGraph(Graph*);          //그래프를 구성하기 위해 사용한 메모리를 반납하는 함수
+void Push(Graph*);              //깊이우선탐색을 위한 스택에 푸쉬하는 함수
+Graph* Pop();             //스택에 탑에 있는 값을 팝하는 함수
+void DFS(Graph*, int);          //깊이우선탐색 함수
+void enQueue(Graph*);           //넓이우선탐색을 위한 큐에 푸쉬하는 함수
+Graph* deQueue();               //큐에 데이터를 팝하는 함수
+void BFS(Graph*, int);          //넓이우선탐색 함수
 /* you may add your own defined functions if necessary */
 
 int main()
@@ -60,7 +74,12 @@ int main()
         case 'd': case 'D':
             printf("input first vertex num what you want = ");  
             scanf("%d", &num);
-            DFS(head, num);    
+            DFS(head, num);         //깊이우선탐색함수 실행
+            break;
+        case 'b': case 'B':
+            printf("input first vertex num what you want = ");  
+            scanf("%d", &num);
+            BFS(head, num);         //넓이우선탐색함수 실행
             break;
 		case 'p': case 'P':
 			printGraph(head);		//현재 그래프 출력
@@ -171,7 +190,7 @@ int insertEdge(Graph *h, int first, int second){    //두 정점 사이 간선�
 void printGraph(Graph *h){      //그래프를 출력하는 함수
     if(h == NULL){      //헤더노드가 메모리를 할당받지 못했을 경우
         printf("the graph is not initialize\n");
-        return 1;
+        return;
     }
 
     for(int i=0; i<MAX_VERTEX; i++){    //정점리스트를 돌기위한 반복문
@@ -246,7 +265,7 @@ void DFS(Graph* h, int num){    //깊이 우선 탐색 함수
 
     Graph* vertex = NULL;   //정점을 가리킬 포인터
     visit_flag[num] = 1;    //현재 정점 방문플래그 1로 설정
-    printf(" %d ", num);    //탐색 시작 정점 출력
+    printf("%d -> ", num);    //탐색 시작 정점 출력
     Push(h[num].link);      //해당 정점의 인접노드 주소 푸쉬
 
     while(stackTop != -1){
@@ -255,7 +274,7 @@ void DFS(Graph* h, int num){    //깊이 우선 탐색 함수
             if(visit_flag[vertex->key] == 0){   //연결된 정점이 방문한 전적이 없을시
                 Push(vertex);                   //스택에 푸쉬 후 
                 visit_flag[vertex->key] = 1;    //해당 정점 방문플래그 1로 설정
-                printf(" %d ", vertex->key);    //그리고 해당 정점 출력 후
+                printf("%d -> ", vertex->key);    //그리고 해당 정점 출력 후
                 vertex = h[vertex->key].link;   //vertex가 해당 정점의 인접노드를 가리키도록 설정
             }
             else{           //탐색하는 정점이 방문한 전적이 있다면
@@ -268,6 +287,73 @@ void DFS(Graph* h, int num){    //깊이 우선 탐색 함수
         visit_flag[i] = 0;
         adj_list[i] = NULL;
     }
+}
 
-    return 1;
+Graph* deQueue()   //큐에 데이터를 팝하는 함수
+{
+	if (front == rear) {   //현재 큐가 비어있다면
+		//printf("current Queue is empty\n" );
+		return NULL;
+	}
+	else{         //큐가 비어있지 않다면 
+		front = (front + 1) % MAX_VERTEX;   //모듈러 연산을 통해 front값 변경(원형큐형태)
+		return Queue[front];         //팝하여 원소를 빼냄
+	}
+}
+
+void enQueue(Graph* aNode)   //큐에 값을 푸쉬하는 함수
+{
+	if((rear+1) % MAX_VERTEX == front){   //모듈러연산을 통해 큐가 꽉차있는지 체크
+		printf("current Queue is Full\n");   //꽉차있다면 함수종료
+		return;
+	}
+	else {         //큐가 비어있다면
+		rear = (rear+1) % MAX_VERTEX;   //모듈러연산을 통하여 rear값 변경, 큐가 원형큐형태를 띔
+		Queue[rear] = aNode;            //큐에 푸쉬
+	}
+}
+
+void BFS(Graph* h, int num){    //넓이 우선 탐색 함수
+    if(h == NULL){      //헤더노드가 메모리를 할당받지 못했을 경우
+        printf("the graph is not initialized\n");
+        return;
+    }
+
+    if(num < 0 || num >= MAX_VERTEX){   //정점의 숫자가 조건에 맞지않는 수라면
+        printf("you should input vertext num 0~9\n");
+        return;
+    }
+
+    if(h[num].key == 0){            //입력한 정점이 그래프에 존재하지 않을 경우
+        printf("that vertex is not exist in graph\n");
+        return;
+    }
+
+    if (h[num].link == NULL){       //탐색을 시작한 정점의 인접노드가 존재하지 않을 경우
+        printf(" %d ", num);        //해당 정점만 출력 후 종료
+        return;
+    }
+
+    Graph* vertex = NULL;
+
+    visit_flag[num] = 1;            //시작 정점 방문플래그 1로 설정
+    printf("%d -> ", num);          //해당 정점 출력 후
+    enQueue(h[num].link);           //큐에 푸쉬
+
+    while(front != rear){           //큐가 빌때까지 반복문 실행
+        vertex = deQueue();         //vertex가 큐에서 팝한 노드를 가리키도록함
+        for (; vertex; vertex = vertex->link){  //그 후 인접노드 탐색하면서(동일 레벨 노드 출력위함)
+            if (visit_flag[vertex->key] == 0){  //방문한 전적이 없다면
+                printf("%d -> ", vertex->key);  //해당 정점 출력
+                visit_flag[vertex->key] = 1;    //해당 정점 방문플래그를 설정 후
+                enQueue(h[vertex->key].link);   //큐에 삽입
+            }
+        }
+    }
+
+    for(int i=0; i<MAX_VERTEX; i++){    //탐색 후 다음 BFS를 위하여 초기상태로 되돌림
+        visit_flag[i] = 0;
+        adj_list[i] = NULL;
+    }
+    rear = -1, front = -1;
 }
