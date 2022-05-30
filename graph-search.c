@@ -100,15 +100,15 @@ int initializeGraph(Graph** h){     //그래프를 초기화하는 함수
         freeGraph(*h);
     }
 
-    *h = (Graph*)malloc(sizeof(Graph) * MAX_VERTEX);    //정점배열 생성 후 각 필드값 할당, 0은 해당 정점이 존재하지 않는 것
+    *h = (Graph*)malloc(sizeof(Graph) * MAX_VERTEX);    //정점배열 생성 후 각 필드값 할당
     for(int i=0; i<MAX_VERTEX; i++){
         (*h)[i].key = 0;
         (*h)[i].link = NULL;
     }
 
-    for(int i=0; i<MAX_VERTEX; i++){    //DFS를 위한 자료구조
-        visit_flag[i] = 0;
-        adj_list[i] = NULL;
+    for(int i=0; i<MAX_VERTEX; i++){    //DFS, BFS를 위한 자료구조
+        visit_flag[i] = 0;              //방문했는지 체크하는 플래그
+        adj_list[i] = NULL;             //인접노드리스트를 관리하는 포인터 배열
     }
 
     return 1;
@@ -313,7 +313,7 @@ void enQueue(Graph* aNode)   //큐에 값을 푸쉬하는 함수
 	}
 }
 
-void BFS(Graph* h, int num){    //넓이 우선 탐색 함수
+void BFS(Graph* h, int num){    //너비 우선 탐색 함수
     if(h == NULL){      //헤더노드가 메모리를 할당받지 못했을 경우
         printf("the graph is not initialized\n");
         return;
